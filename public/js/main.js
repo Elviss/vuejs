@@ -181,6 +181,144 @@ process.chdir = function (dir) {
 process.umask = function() { return 0; };
 
 },{}],2:[function(require,module,exports){
+var Vue // late bind
+var version
+var map = window.__VUE_HOT_MAP__ = Object.create(null)
+var installed = false
+var isBrowserify = false
+var initHookName = 'beforeCreate'
+
+exports.install = function (vue, browserify) {
+  if (installed) return
+  installed = true
+
+  Vue = vue.__esModule ? vue.default : vue
+  version = Vue.version.split('.').map(Number)
+  isBrowserify = browserify
+
+  // compat with < 2.0.0-alpha.7
+  if (Vue.config._lifecycleHooks.indexOf('init') > -1) {
+    initHookName = 'init'
+  }
+
+  exports.compatible = version[0] >= 2
+  if (!exports.compatible) {
+    console.warn(
+      '[HMR] You are using a version of vue-hot-reload-api that is ' +
+      'only compatible with Vue.js core ^2.0.0.'
+    )
+    return
+  }
+}
+
+/**
+ * Create a record for a hot module, which keeps track of its constructor
+ * and instances
+ *
+ * @param {String} id
+ * @param {Object} options
+ */
+
+exports.createRecord = function (id, options) {
+  var Ctor = null
+  if (typeof options === 'function') {
+    Ctor = options
+    options = Ctor.options
+  }
+  makeOptionsHot(id, options)
+  map[id] = {
+    Ctor: Vue.extend(options),
+    instances: []
+  }
+}
+
+/**
+ * Make a Component options object hot.
+ *
+ * @param {String} id
+ * @param {Object} options
+ */
+
+function makeOptionsHot (id, options) {
+  injectHook(options, initHookName, function () {
+    map[id].instances.push(this)
+  })
+  injectHook(options, 'beforeDestroy', function () {
+    var instances = map[id].instances
+    instances.splice(instances.indexOf(this), 1)
+  })
+}
+
+/**
+ * Inject a hook to a hot reloadable component so that
+ * we can keep track of it.
+ *
+ * @param {Object} options
+ * @param {String} name
+ * @param {Function} hook
+ */
+
+function injectHook (options, name, hook) {
+  var existing = options[name]
+  options[name] = existing
+    ? Array.isArray(existing)
+      ? existing.concat(hook)
+      : [existing, hook]
+    : [hook]
+}
+
+function tryWrap (fn) {
+  return function (id, arg) {
+    try { fn(id, arg) } catch (e) {
+      console.error(e)
+      console.warn('Something went wrong during Vue component hot-reload. Full reload required.')
+    }
+  }
+}
+
+exports.rerender = tryWrap(function (id, options) {
+  var record = map[id]
+  if (typeof options === 'function') {
+    options = options.options
+  }
+  record.Ctor.options.render = options.render
+  record.Ctor.options.staticRenderFns = options.staticRenderFns
+  record.instances.slice().forEach(function (instance) {
+    instance.$options.render = options.render
+    instance.$options.staticRenderFns = options.staticRenderFns
+    instance._staticTrees = [] // reset static trees
+    instance.$forceUpdate()
+  })
+})
+
+exports.reload = tryWrap(function (id, options) {
+  if (typeof options === 'function') {
+    options = options.options
+  }
+  makeOptionsHot(id, options)
+  var record = map[id]
+  if (version[1] < 2) {
+    // preserve pre 2.2 behavior for global mixin handling
+    record.Ctor.extendOptions = options
+  }
+  var newCtor = record.Ctor.super.extend(options)
+  record.Ctor.options = newCtor.options
+  record.Ctor.cid = newCtor.cid
+  record.Ctor.prototype = newCtor.prototype
+  if (newCtor.release) {
+    // temporary global mixin strategy used in < 2.0.0-alpha.6
+    newCtor.release()
+  }
+  record.instances.slice().forEach(function (instance) {
+    if (instance.$vnode && instance.$vnode.context) {
+      instance.$vnode.context.$forceUpdate()
+    } else {
+      console.warn('Root or manually mounted instance modified. Full reload required.')
+    }
+  })
+})
+
+},{}],3:[function(require,module,exports){
 (function (process,global){
 /*!
  * Vue.js v2.2.6
@@ -9504,22 +9642,74 @@ Vue$3.compile = compileToFunctions;
 module.exports = Vue$3;
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":1}],3:[function(require,module,exports){
+},{"_process":1}],4:[function(require,module,exports){
+var inserted = exports.cache = {}
+
+exports.insert = function (css) {
+  if (inserted[css]) return
+  inserted[css] = true
+
+  var elem = document.createElement('style')
+  elem.setAttribute('type', 'text/css')
+
+  if ('textContent' in elem) {
+    elem.textContent = css
+  } else {
+    elem.styleSheet.cssText = css
+  }
+
+  document.getElementsByTagName('head')[0].appendChild(elem)
+  return elem
+}
+
+},{}],5:[function(require,module,exports){
+var __vueify_insert__ = require("vueify/lib/insert-css")
+var __vueify_style__ = __vueify_insert__.insert("\n\n")
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = {};
+if (module.exports.__esModule) module.exports = module.exports.default
+;(typeof module.exports === "function"? module.exports.options: module.exports).template = "\n<div _v-f0a3602e=\"\">\n    <table class=\"table table-bordered table-striped table-hover\" _v-f0a3602e=\"\">\n        <thead _v-f0a3602e=\"\">\n        <tr _v-f0a3602e=\"\">\n            <th _v-f0a3602e=\"\">Nome</th>\n            <th _v-f0a3602e=\"\">Email</th>\n        </tr>\n        </thead>\n\n        <tbody _v-f0a3602e=\"\">\n\n        <tr v-for=\"user in users\" _v-f0a3602e=\"\">\n            <td _v-f0a3602e=\"\">{{user.name}}</td>\n            <td _v-f0a3602e=\"\">{{user.email}}</td>\n        </tr>\n\n        </tbody>\n    </table>\n</div>\n"
+if (module.hot) {(function () {  module.hot.accept()
+  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), true)
+  if (!hotAPI.compatible) return
+  module.hot.dispose(function () {
+    __vueify_insert__.cache["\n\n"] = false
+    document.head.removeChild(__vueify_style__)
+  })
+  if (!module.hot.data) {
+    hotAPI.createRecord("_v-f0a3602e", module.exports)
+  } else {
+    hotAPI.update("_v-f0a3602e", module.exports, (typeof module.exports === "function" ? module.exports.options : module.exports).template)
+  }
+})()}
+},{"vue":3,"vue-hot-reload-api":2,"vueify/lib/insert-css":4}],6:[function(require,module,exports){
 'use strict';
 
 var _vue = require('vue');
 
 var _vue2 = _interopRequireDefault(_vue);
 
+var _users = require('./components/users.vue');
+
+var _users2 = _interopRequireDefault(_users);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 new _vue2.default({
     el: '.container',
+    components: {
+        Users: _users2.default
+    },
     data: {
         title: 'qualquer coisa'
     }
 });
 
-},{"vue":2}]},{},[3]);
+},{"./components/users.vue":5,"vue":3}]},{},[6]);
 
 //# sourceMappingURL=main.js.map
