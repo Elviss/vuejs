@@ -17,6 +17,8 @@ elixir(function(mix) {
     mix.styles(['../../../node_modules/bootstrap/dist/css/bootstrap.css'],
         'public/css/styles.css');
 
-    mix.sass('app.scss')
-       .webpack('app.js');
+    mix.browserify('main.js');
+
+    // mix.sass('app.scss')
+    //    .webpack('app.js');
 });
