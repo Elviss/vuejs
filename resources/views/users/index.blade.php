@@ -1,13 +1,15 @@
 @extends('layouts.main')
 
 @section('content')
+    <h1>@{{ title }}</h1>
+
     <table class="table table-bordered table-striped table-hover">
-        <thread>
+        <thead>
             <tr>
                 <th>Nome</th>
                 <th>Email</th>
             </tr>
-        </thread>
+        </thead>
 
         <tbody>
             @foreach($users as $user)

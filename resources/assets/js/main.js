@@ -1,2 +1,8 @@
+import Vue from 'vue'
 
-alert('aqui');
+new Vue({
+    el: '.container',
+    data: {
+        title: 'qualquer coisa'
+    }
+});
