@@ -7,6 +7,8 @@
     <title>VueJS</title>
 
     <link rel="stylesheet" href="css/styles.css">
+
+    <script src="https://cdn.jsdelivr.net/lodash/4.13.1/lodash.js"></script>
 </head>
 <body>
 
