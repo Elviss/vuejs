@@ -7,11 +7,12 @@
             return {
                 list: [],
                 sortProperty: 'name',
-                sortDirection: 'asc'
+                sortDirection: 'asc',
+                filterTerm: ''
             }
         },
         methods: {
-            sort(ev, property) {
+            sortBy(ev, property) {
                 ev.preventDefault();
 
                 this.sortProperty = property;
@@ -26,6 +27,22 @@
         computed: {
             orderedUsers: function () {
                 return _.orderBy(this.list, this.sortProperty, this.sortDirection)
+            },
+            filteredUsers: function () {
+
+                return this.list.filter(function (user) {
+                    return user.name.indexOf(this.filterTerm) !== -1
+                });
+
+            },
+            filteredAndOrdered: function () {
+                const result = _.orderBy(this.list, this.sortProperty, this.sortDirection);
+
+                if (_.isEmpty(this.filterTerm)) {
+                    return result;
+                }
+
+                return _.filter(result, list => list.name.indexOf(this.filterTerm) >= 0);
             }
         },
         mounted() {
@@ -37,17 +54,22 @@
 
 <template>
     <div>
+
+        <div class="well">
+            <input type="text" class="form-control" placeholder="Filtrar a lista abaixo" v-model="filterTerm">
+        </div>
+
         <table class="table table-bordered table-striped table-hover">
             <thead>
             <tr>
-                <th><a href="#" @click="sort($event, 'name')">Nome</a></th>
-                <th><a href="#" @click="sort($event, 'email')">Email</a></th>
+                <th><a href="#" @click="sortBy($event, 'name')">Nome</a></th>
+                <th><a href="#" @click="sortBy($event, 'email')">Email</a></th>
             </tr>
             </thead>
 
             <tbody>
 
-            <tr v-for="user in orderedUsers">
+            <tr v-for="user in filteredAndOrdered">
                 <td>{{user.name}}</td>
                 <td>{{user.email}}</td>
             </tr>

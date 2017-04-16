@@ -26767,12 +26767,13 @@ exports.default = {
         return {
             list: [],
             sortProperty: 'name',
-            sortDirection: 'asc'
+            sortDirection: 'asc',
+            filterTerm: ''
         };
     },
 
     methods: {
-        sort: function sort(ev, property) {
+        sortBy: function sortBy(ev, property) {
             ev.preventDefault();
 
             this.sortProperty = property;
@@ -26787,6 +26788,25 @@ exports.default = {
     computed: {
         orderedUsers: function orderedUsers() {
             return _.orderBy(this.list, this.sortProperty, this.sortDirection);
+        },
+        filteredUsers: function filteredUsers() {
+
+            return this.list.filter(function (user) {
+                return user.name.indexOf(this.filterTerm) !== -1;
+            });
+        },
+        filteredAndOrdered: function filteredAndOrdered() {
+            var _this = this;
+
+            var result = _.orderBy(this.list, this.sortProperty, this.sortDirection);
+
+            if (_.isEmpty(this.filterTerm)) {
+                return result;
+            }
+
+            return _.filter(result, function (list) {
+                return list.name.indexOf(_this.filterTerm) >= 0;
+            });
         }
     },
     mounted: function mounted() {
@@ -26794,7 +26814,7 @@ exports.default = {
     }
 };
 if (module.exports.__esModule) module.exports = module.exports.default
-;(typeof module.exports === "function"? module.exports.options: module.exports).template = "\n<div _v-f0a3602e=\"\">\n    <table class=\"table table-bordered table-striped table-hover\" _v-f0a3602e=\"\">\n        <thead _v-f0a3602e=\"\">\n        <tr _v-f0a3602e=\"\">\n            <th _v-f0a3602e=\"\"><a href=\"#\" @click=\"sort($event, 'name')\" _v-f0a3602e=\"\">Nome</a></th>\n            <th _v-f0a3602e=\"\"><a href=\"#\" @click=\"sort($event, 'email')\" _v-f0a3602e=\"\">Email</a></th>\n        </tr>\n        </thead>\n\n        <tbody _v-f0a3602e=\"\">\n\n        <tr v-for=\"user in orderedUsers\" _v-f0a3602e=\"\">\n            <td _v-f0a3602e=\"\">{{user.name}}</td>\n            <td _v-f0a3602e=\"\">{{user.email}}</td>\n        </tr>\n\n        </tbody>\n    </table>\n</div>\n"
+;(typeof module.exports === "function"? module.exports.options: module.exports).template = "\n<div _v-f0a3602e=\"\">\n\n    <div class=\"well\" _v-f0a3602e=\"\">\n        <input type=\"text\" class=\"form-control\" placeholder=\"Filtrar a lista abaixo\" v-model=\"filterTerm\" _v-f0a3602e=\"\">\n    </div>\n\n    <table class=\"table table-bordered table-striped table-hover\" _v-f0a3602e=\"\">\n        <thead _v-f0a3602e=\"\">\n        <tr _v-f0a3602e=\"\">\n            <th _v-f0a3602e=\"\"><a href=\"#\" @click=\"sortBy($event, 'name')\" _v-f0a3602e=\"\">Nome</a></th>\n            <th _v-f0a3602e=\"\"><a href=\"#\" @click=\"sortBy($event, 'email')\" _v-f0a3602e=\"\">Email</a></th>\n        </tr>\n        </thead>\n\n        <tbody _v-f0a3602e=\"\">\n\n        <tr v-for=\"user in filteredAndOrdered\" _v-f0a3602e=\"\">\n            <td _v-f0a3602e=\"\">{{user.name}}</td>\n            <td _v-f0a3602e=\"\">{{user.email}}</td>\n        </tr>\n\n        </tbody>\n    </table>\n</div>\n"
 if (module.hot) {(function () {  module.hot.accept()
   var hotAPI = require("vue-hot-reload-api")
   hotAPI.install(require("vue"), true)
