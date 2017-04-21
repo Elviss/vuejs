@@ -11,6 +11,11 @@ class UsersController extends Controller
     {
         $users = User::all();
 
-        return view('users.index')->with(compact('users'));
+        return view('users.index');
+    }
+
+    public function listar()
+    {
+        return \Response::json(User::all(), 200);
     }
 }

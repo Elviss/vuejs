@@ -5,10 +5,10 @@
         props: ['users'],
         data () {
             return {
-                list: [],
                 sortProperty: 'name',
                 sortDirection: 'asc',
-                filterTerm: ''
+                filterTerm: '',
+                mutatedUsers: {}
             }
         },
         methods: {
@@ -36,17 +36,17 @@
 
             },
             filteredAndOrdered: function () {
-                const result = _.orderBy(this.list, this.sortProperty, this.sortDirection);
+                const result = _.orderBy(this.mutatedUsers, this.sortProperty, this.sortDirection);
 
                 if (_.isEmpty(this.filterTerm)) {
                     return result;
                 }
 
-                return _.filter(result, list => list.name.indexOf(this.filterTerm) >= 0);
+                return _.filter(result, mutatedUsers => mutatedUsers.name.indexOf(this.filterTerm) >= 0);
             }
         },
         mounted() {
-            this.list = JSON.parse(this.users)
+            this.$http.get('/api/users').then((req) => this.mutatedUsers = req.data);
         },
 
     }
